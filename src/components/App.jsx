@@ -1,57 +1,51 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useState } from 'react';
 import s from './App.module.css';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGalleryStatus from './ImageGalleryStatus/ImageGalleryStatus';
 import Container from './Container';
 import Modal from './Modal';
 
-class App extends PureComponent {
-  state = {
-    search: '',
-    modalImg: {
-      largeImageURL: '',
-      tags: '',
-    },
-    showedModal: false,
+const initialModalImg = {
+  largeImageURL: '',
+  tags: '',
+};
+
+function App() {
+  const [search, setSearch] = useState('');
+  const [modalImg, setModalImg] = useState(initialModalImg);
+  const [showedModal, setShowedModal] = useState(false);
+
+  const getSearchValue = (value) => setSearch(value);
+
+  const getModalImg = (modalImg) => {
+    setModalImg(modalImg);
+    toggleModal();
   };
 
-  getSearchValue = (value) => {
-    this.setState({ search: value });
+  const handleKeyDownEscModal = () => {
+    toggleModal();
+    setModalImg(initialModalImg);
   };
 
-  getModalImg = (modalImg) => {
-    this.setState({ modalImg });
-    this.toggleModal();
-  };
+  const toggleModal = () => setShowedModal(p => !p);
 
-  handleKeyDownEscModal = () => {
-    this.toggleModal();
-    this.setState({ modalImg: { largeImageURL: '', tags: '' } });
-  };
+  const { largeImageURL, tags } = modalImg;
 
-  toggleModal = () => {
-    this.setState(({ showedModal }) => ({ showedModal: !showedModal }));
-  };
-
-  render() {
-    const { search, modalImg: { largeImageURL, tags }, showedModal } = this.state;
-
-    return (
-      <>
-        <div className={s.container}>
-          <Searchbar onSubmit={this.getSearchValue} />
-          <Container>
-            <ImageGalleryStatus search={search} onClickImg={this.getModalImg} />
-          </Container>
-        </div>
-        {showedModal && <Modal
-          src={largeImageURL}
-          alt={tags}
-          onKeyDownEsc={this.handleKeyDownEscModal}
-        />}
-      </>
-    );
-  }
+  return (
+    <>
+      <div className={s.container}>
+        <Searchbar onSubmit={getSearchValue} />
+        <Container>
+          <ImageGalleryStatus search={search} onClickImg={getModalImg} />
+        </Container>
+      </div>
+      {showedModal && <Modal
+        src={largeImageURL}
+        alt={tags}
+        onKeyDownEsc={handleKeyDownEscModal}
+      />}
+    </>
+  );
 }
 
 export default App;
