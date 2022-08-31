@@ -1,102 +1,76 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { nanoid } from 'nanoid'
-import s from './ImageGalleryStatus.module.css'
+import { nanoid } from 'nanoid';
+import s from './ImageGalleryStatus.module.css';
 import pixabayApi, { ITEMS_PER_PAGE } from '../../services/pixabay.api';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import Button from '../Button';
 import Loader from '../Loader';
 
-class ImageGalleryStatus extends PureComponent {
-  state = {
-    images: [],
-    page: 1,
-    totalHits: null,
-    error: null,
-    loading: false,
-  };
+function ImageGalleryStatus({ onClickImg, search }) {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalHits, setTotalHits] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { search } = this.props;
-    const { page } = this.state;
-    if (prevProps.search === search && prevState.page === page) {
+  const searchRef = useRef(search);
+  const pageRef = useRef(page);
+
+  useEffect(() => {
+    if (search === '') return;
+    if (searchRef.current === search && pageRef.current === page) {
+      setError(`Change your search "${search}" by new, please.`)
       return;
     }
-    if (prevProps.search !== search) {
-      this.setState({ page: 1 });
-      window.scroll(0, 0);
-    }
-
-    this.setState({
-      loading: true,
-    });
+    setLoading(true);
     pixabayApi
       .getSearchImages({ value: search, page })
       .then(({ hits, totalHits }) => {
-        const uniqueHits = this.addIdToCollection(hits);
+        const uniqueHits = addIdToCollection(hits);
         // const uniqueHits = hits; // towe
-
-        this.setState(p => {
-          const images = prevProps.search === search
-            ? [...p.images, ...uniqueHits]
-            : uniqueHits;
-          return ({
-            images,
-            totalHits,
-          });
-        });
+        setError(null);
+        setImages(p => searchRef.current === search
+          ? [...p, ...uniqueHits]
+          : uniqueHits);
+        setTotalHits(totalHits);
+        searchRef.current = search
       })
       .catch((e) => {
-        this.setState({
-          error: e.message,
-        });
+        setError(e.message);
+        setImages([]);
       })
-      .finally(() => this.setState({ loading: false }));
-  }
+      .finally(() => setLoading(false));
+    return () => {};
+  }, [search, page]);
 
-  // getUniqueId = (images) => {
-  //   return images.filter((it, i, arr) =>
-  //     arr.indexOf(arr.find(({ id }) => id === it.id)) === i);
-  // }
-
-  addIdToCollection = (images) => {
+  const addIdToCollection = (images) => {
     return images.map(it => ({ ...it, frontId: nanoid(10) }));
-  }
-
-  calcPages = (totalHits) => Math.ceil(totalHits / ITEMS_PER_PAGE);
-
-  handleMoreBtnClick = () => {
-    this.setState(p => ({ page: p.page + 1 }));
   };
 
-  render() {
-    const { error, images, totalHits, page, loading } = this.state;
-    const { onClickImg } = this.props;
-    const pages = this.calcPages(totalHits);
+  const calcPages = (totalHits) => Math.ceil(totalHits / ITEMS_PER_PAGE);
 
-    return (
-      <div className={s.container}>
-        {images.length === 0 && <p>No images</p>}
-        {error && <p>{error}
-          <button
-            type='button'
-            onClick={() => this.setState({ error: '' })}>Close Error
-          </button>
-        </p>}
-        {!error && images.length > 0 && (
-          <>
-            <ImageGallery images={images} onClickImg={onClickImg} />
-            {(pages > page && !loading) && <Button
-              onClick={this.handleMoreBtnClick}
-              pages={pages}
-              page={page}
-            />}
-          </>
-        )}
-        {loading && <Loader/>}
-      </div>
-    );
-  }
+  const handleMoreBtnClick = () => setPage(p => (p + 1));
+
+  const pages = calcPages(totalHits);
+
+  return (
+    <div className={s.container}>
+      {images.length === 0 && !error && <p>No images</p>}
+      {error && !loading && <p>{error}</p>}
+      {images.length > 0 && !error && (
+        <>
+          <ImageGallery images={images} onClickImg={onClickImg} />
+          {(pages > page && !loading) && <Button
+            onClick={handleMoreBtnClick}
+            pages={pages}
+            page={page}
+          />}
+        </>
+      )}
+      {loading && <Loader />}
+    </div>
+  );
 }
 
 ImageGalleryStatus.propTypes = {
