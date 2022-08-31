@@ -1,4 +1,4 @@
-import React, { PureComponent, useState } from 'react';
+import React, { useState } from 'react';
 import s from './App.module.css';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGalleryStatus from './ImageGalleryStatus/ImageGalleryStatus';
