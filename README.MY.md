@@ -1,7 +1,7 @@
-# My project goit-react-hw-03-image-finder
+# My project goit-react-hw-04-images
 
 
 ## Links
 
-- [GitHub](https://github.com/NikolayLemehov/goit-react-hw-03-image-finder).
-- [GitHubPages](https://nikolaylemehov.github.io/goit-react-hw-03-image-finder/).
+- [GitHub](https://github.com/NikolayLemehov/goit-react-hw-04-images).
+- [GitHubPages](https://nikolaylemehov.github.io/goit-react-hw-04-images/).
