@@ -1,58 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+// import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { nanoid } from 'nanoid';
 import s from './ImageGalleryStatus.module.css';
-import pixabayApi, { ITEMS_PER_PAGE } from '../../services/pixabay.api';
+import { ITEMS_PER_PAGE } from '../../services/pixabay.api';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import Button from '../Button';
 import Loader from '../Loader';
+import { useSearch } from '../Searchbar/useSearch';
 
 function ImageGalleryStatus({ onClickImg, search }) {
-  const [images, setImages] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalHits, setTotalHits] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const searchRef = useRef(search);
-  const pageRef = useRef(page);
-
-  useEffect(() => {
-    if (search === '') return;
-    if (searchRef.current === search && pageRef.current === page) {
-      setError(`Change your search "${search}" by new, please.`)
-      return;
-    }
-    setLoading(true);
-    pixabayApi
-      .getSearchImages({ value: search, page })
-      .then(({ hits, totalHits }) => {
-        const uniqueHits = addIdToCollection(hits);
-        // const uniqueHits = hits; // towe
-        setError(null);
-        setImages(p => searchRef.current === search
-          ? [...p, ...uniqueHits]
-          : uniqueHits);
-        setTotalHits(totalHits);
-        searchRef.current = search
-      })
-      .catch((e) => {
-        setError(e.message);
-        setImages([]);
-      })
-      .finally(() => setLoading(false));
-    return () => {};
-  }, [search, page]);
-
-  const addIdToCollection = (images) => {
-    return images.map(it => ({ ...it, frontId: nanoid(10) }));
-  };
-
-  const calcPages = (totalHits) => Math.ceil(totalHits / ITEMS_PER_PAGE);
+  const {error, loading, page, setPage, images, totalHits} = useSearch(search);
 
   const handleMoreBtnClick = () => setPage(p => (p + 1));
 
-  const pages = calcPages(totalHits);
+  const pages = Math.ceil(totalHits / ITEMS_PER_PAGE);
 
   return (
     <div className={s.container}>
