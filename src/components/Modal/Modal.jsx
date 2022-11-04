@@ -13,6 +13,11 @@ function Modal({onKeyDownEsc, src, alt}) {
     onKeyDownEsc()
   }, [onKeyDownEsc])
 
+  const onClickOverlay = useCallback(({target, currentTarget}) => {
+    if (target !== currentTarget) return;
+    onKeyDownEsc()
+  }, [onKeyDownEsc])
+
   useEffect(() => {
     window.addEventListener('keydown', onKeyDown)
     // modalRootRef.appendChild(el)
@@ -24,7 +29,7 @@ function Modal({onKeyDownEsc, src, alt}) {
   }, [onKeyDown, onKeyDownEsc]);
 
   return createPortal((
-    <div className={s.overlay} onClick={() => onKeyDownEsc()}>
+    <div className={s.overlay} onClick={onClickOverlay}>
       <div className={s.modal}>
         <img src={src} alt={alt} />
       </div>
